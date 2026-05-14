@@ -2,9 +2,13 @@ import os
 import re
 
 _PATTERN = re.compile(r'^TOPIC_(.+)_ID$')
+_cache: dict[str, int] | None = None
 
 
 def _load_topic_map() -> dict[str, int]:
+    global _cache
+    if _cache is not None:
+        return _cache
     result: dict[str, int] = {}
     for key, value in os.environ.items():
         m = _PATTERN.match(key)
@@ -15,7 +19,8 @@ def _load_topic_map() -> dict[str, int]:
                     result[m.group(1).lower()] = thread_id
             except ValueError:
                 pass
-    return result
+    _cache = result
+    return _cache
 
 
 def get_thread_id(topic_name: str) -> int | None:
