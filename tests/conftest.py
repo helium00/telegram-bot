@@ -1,4 +1,5 @@
 import os
+import pytest
 
 # Set env vars BEFORE any bot module is imported.
 os.environ["TELEGRAM_BOT_TOKEN"] = "0:test_token"
@@ -11,3 +12,11 @@ os.environ["TOPIC_EVENTS_ID"] = "3"
 os.environ["TOPIC_BUREAUCRACY_ID"] = "4"
 os.environ["TOPIC_SPANISH_ID"] = "5"
 os.environ["TOPIC_ENGLISH_ID"] = "6"
+
+
+@pytest.fixture(autouse=True)
+def reset_topics_cache():
+    import bot.telegram.topics as _topics_mod
+    _topics_mod._cache = None
+    yield
+    _topics_mod._cache = None
