@@ -138,6 +138,7 @@ mute - Mute a user (reply to their message)
 unmute - Unmute a user (reply to their message)
 warn - Warn a user (reply to their message)
 del - Delete a message (reply to it)
+trigger - Manually run a content source (admin only)
 ```
 
 > **Keep your bot token private.** Anyone with the token can control your bot. Never commit it to git.
@@ -319,6 +320,7 @@ All moderation commands must be used by **replying to a message** sent by the ta
 | `/unmute` | Reply to any message by the user | Restores full send permissions |
 | `/warn` | Reply + optional reason | Issues a warning; auto-bans when threshold is reached |
 | `/del` | Reply to the message to delete | Deletes that message and the `/del` command itself |
+| `/trigger <source>` | Anywhere in the group | Manually runs a content source immediately |
 
 **Duration format for `/mute`:**
 
@@ -346,6 +348,12 @@ All moderation commands must be used by **replying to a message** sent by the ta
 
 # Delete a message (reply to it):
 /del
+
+# Manually post the weather update now:
+/trigger weather
+
+# Manually post a Spanish word now:
+/trigger spanish
 ```
 
 **Warning system:**
@@ -357,6 +365,29 @@ All moderation commands must be used by **replying to a message** sent by the ta
   ```env
   MAX_WARNINGS=3
   ```
+
+**`/trigger` — manual source execution:**
+
+Runs a content source immediately, bypassing the schedule. Deduplication is still active: if the content was already posted today, it is silently skipped. Useful for testing or re-posting after a failure.
+
+| Source name | What it posts | Destination topic |
+|---|---|---|
+| `weather` | Daily weather summary | `TOPIC_WEATHER_ID` |
+| `events` | Local events listing | `TOPIC_EVENTS_ID` |
+| `bureaucracy` | Bureaucracy reminder | `TOPIC_BUREAUCRACY_ID` |
+| `spanish` | Spanish word of the day | `TOPIC_SPANISH_ID` |
+| `english` | English word of the day | `TOPIC_ENGLISH_ID` |
+
+Usage:
+```
+/trigger weather
+/trigger events
+/trigger bureaucracy
+/trigger spanish
+/trigger english
+```
+
+If called without arguments, the bot replies with the list of valid source names.
 
 ---
 
