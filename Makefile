@@ -25,7 +25,7 @@ backup:
 	@bash scripts/backup_postgres.sh
 
 test:
-	pytest tests/ -v
+	python3 -m pytest tests/ -v
 
 lint:
-	ruff check bot/ tests/
+	python3 -m ruff check bot/ tests/
