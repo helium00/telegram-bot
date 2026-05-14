@@ -19,6 +19,9 @@ class TelegramClient:
         text: str,
         parse_mode: str = ParseMode.HTML,
     ) -> None:
+        if not self._group_id:
+            logger.warning("send_skipped_no_group_id", topic=topic_name)
+            return
         thread_id = get_thread_id(topic_name)
         await self._bot.send_message(
             chat_id=self._group_id,

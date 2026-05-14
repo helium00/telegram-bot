@@ -6,7 +6,7 @@ class Settings(BaseSettings):
 
     # Telegram
     telegram_bot_token: str
-    telegram_group_id: int
+    telegram_group_id: int = 0  # discovered via /id command after first run
 
     # Topic thread IDs (0 means "not configured / use general chat")
     topic_general_id: int = 0
