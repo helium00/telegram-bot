@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     # App
     log_level: str = "INFO"
     app_env: str = "local"
+    max_warnings: int = 3
 
     # Schedules (cron expressions)
     schedule_weather: str = "0 8 * * *"
