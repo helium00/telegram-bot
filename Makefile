@@ -1,5 +1,7 @@
 COMPOSE = docker compose
 BACKUP_DIR = backups
+VENV = .venv
+PYTHON = $(VENV)/bin/python3
 
 .PHONY: secrets install build up down logs db-shell backup test lint
 
@@ -7,7 +9,9 @@ secrets:
 	@bash scripts/generate_secrets.sh
 
 install:
-	python3 -m pip install -r requirements.txt
+	python3 -m venv $(VENV)
+	$(PYTHON) -m pip install --upgrade pip -q
+	$(PYTHON) -m pip install -r requirements.txt
 
 build:
 	$(COMPOSE) build
@@ -28,7 +32,7 @@ backup:
 	@bash scripts/backup_postgres.sh
 
 test:
-	python3 -m pytest tests/ -v
+	$(PYTHON) -m pytest tests/ -v
 
 lint:
-	python3 -m ruff check bot/ tests/
+	$(PYTHON) -m ruff check bot/ tests/

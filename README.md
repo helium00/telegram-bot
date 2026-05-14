@@ -131,10 +131,13 @@ This copies `.env.example` to `.env` and fills in a random `POSTGRES_PASSWORD`. 
 
 ## Running Locally
 
-**Prerequisites:** Docker, Docker Compose, `make`, Python 3.
+**Prerequisites:** Docker, Docker Compose, `make`, Python 3, `python3-venv`.
 
 ```bash
-# 1. Install Python dependencies (required for make test / make lint)
+# On Ubuntu — install venv support if missing
+sudo apt install -y python3-venv
+
+# 1. Create virtualenv and install Python dependencies (required for make test / make lint)
 make install
 
 # 2. Generate secrets
@@ -193,7 +196,7 @@ class MySource(BaseSource):
 
 ```bash
 # On the server — install system dependencies
-sudo apt update && sudo apt install -y docker.io docker-compose-plugin make git python3-pip
+sudo apt update && sudo apt install -y docker.io docker-compose-plugin make git python3-venv
 
 # Clone the repo
 git clone <your-repo-url> sagunto-hub-bot
