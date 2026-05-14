@@ -131,25 +131,28 @@ This copies `.env.example` to `.env` and fills in a random `POSTGRES_PASSWORD`. 
 
 ## Running Locally
 
-**Prerequisites:** Docker, Docker Compose, `make`.
+**Prerequisites:** Docker, Docker Compose, `make`, Python 3.
 
 ```bash
-# 1. Generate secrets
+# 1. Install Python dependencies (required for make test / make lint)
+make install
+
+# 2. Generate secrets
 make secrets
 
-# 2. Edit .env — add TELEGRAM_BOT_TOKEN, TELEGRAM_GROUP_ID, TOPIC_*_ID
+# 3. Edit .env — add TELEGRAM_BOT_TOKEN, TELEGRAM_GROUP_ID, TOPIC_*_ID
 
-# 3. Build and start
+# 4. Build and start
 make build
 make up
 
-# 4. Tail logs
+# 5. Tail logs
 make logs
 
-# 5. Connect to DB (optional)
+# 6. Connect to DB (optional)
 make db-shell
 
-# 6. Run tests
+# 7. Run tests
 make test
 ```
 
@@ -189,12 +192,15 @@ class MySource(BaseSource):
 ## Migrating to an Ubuntu Server
 
 ```bash
-# On the server
-sudo apt update && sudo apt install -y docker.io docker-compose-plugin make git
+# On the server — install system dependencies
+sudo apt update && sudo apt install -y docker.io docker-compose-plugin make git python3-pip
 
 # Clone the repo
 git clone <your-repo-url> sagunto-hub-bot
 cd sagunto-hub-bot
+
+# Install Python dependencies (needed for make test / make lint)
+make install
 
 # Copy your .env (do NOT commit it)
 scp local/.env ubuntu@server:/path/sagunto-hub-bot/.env
