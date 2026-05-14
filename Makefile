@@ -7,7 +7,7 @@ secrets:
 	@bash scripts/generate_secrets.sh
 
 install:
-	pip3 install -r requirements.txt
+	python3 -m pip install -r requirements.txt
 
 build:
 	$(COMPOSE) build
