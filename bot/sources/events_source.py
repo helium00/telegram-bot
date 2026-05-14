@@ -3,7 +3,6 @@ from datetime import date, timedelta
 from typing import Any
 
 from bot.sources.base import BaseSource
-from bot.telegram.topics import EVENTS
 
 # TODO: Replace mock data with real event APIs such as:
 # - Eventbrite API: https://www.eventbrite.com/platform/api
@@ -27,8 +26,8 @@ class EventsSource(BaseSource):
         return "events"
 
     @property
-    def target_topic(self) -> str:
-        return EVENTS
+    def default_topic(self) -> str:
+        return "events"
 
     async def fetch_items(self) -> list[dict[str, Any]]:
         today = date.today()

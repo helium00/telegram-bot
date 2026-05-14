@@ -3,7 +3,6 @@ from datetime import date
 from typing import Any
 
 from bot.sources.base import BaseSource
-from bot.telegram.topics import ACTIVITIES
 
 # TODO: Replace mock data with AEMET OpenData API
 # Endpoint: https://opendata.aemet.es/opendata/api/prediccion/especifica/municipio/diaria/{municipio_id}
@@ -21,8 +20,8 @@ class WeatherSource(BaseSource):
         return "weather"
 
     @property
-    def target_topic(self) -> str:
-        return ACTIVITIES
+    def default_topic(self) -> str:
+        return "weather"
 
     async def fetch_items(self) -> list[dict[str, Any]]:
         today = date.today().isoformat()

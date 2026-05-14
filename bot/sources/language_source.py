@@ -3,7 +3,6 @@ from datetime import date
 from typing import Any
 
 from bot.sources.base import BaseSource
-from bot.telegram.topics import ENGLISH, SPANISH
 
 # TODO: Replace mock data with real dictionary/language APIs such as:
 # - WordsAPI (wordsapi.com) for English
@@ -34,8 +33,8 @@ class SpanishWordSource(BaseSource):
         return "spanish_word"
 
     @property
-    def target_topic(self) -> str:
-        return SPANISH
+    def default_topic(self) -> str:
+        return "spanish"
 
     async def fetch_items(self) -> list[dict[str, Any]]:
         today = date.today().isoformat()
@@ -66,8 +65,8 @@ class EnglishWordSource(BaseSource):
         return "english_word"
 
     @property
-    def target_topic(self) -> str:
-        return ENGLISH
+    def default_topic(self) -> str:
+        return "english"
 
     async def fetch_items(self) -> list[dict[str, Any]]:
         today = date.today().isoformat()

@@ -12,16 +12,25 @@ class BaseSource(ABC):
 
     @property
     @abstractmethod
+    def default_topic(self) -> str:
+        """Logical topic name where items from this source are posted.
+
+        Must match the middle segment of the corresponding TOPIC_*_ID env var.
+        Example: 'weather' matches TOPIC_WEATHER_ID.
+        """
+
+    @property
     def target_topic(self) -> str:
-        """Logical topic name where items from this source are posted."""
+        """Resolved topic name (equals default_topic)."""
+        return self.default_topic
 
     @abstractmethod
     async def fetch_items(self) -> list[dict[str, Any]]:
         """Fetch items from the underlying data source.
 
         Each item must include at least:
-          - "id": str  — unique identifier within this source
-          - "title": str  — short title used for deduplication and display
+          - 'id': str  — unique identifier within this source
+          - 'title': str  — short title used for deduplication and display
 
         Returns an empty list when there is nothing to post.
         """

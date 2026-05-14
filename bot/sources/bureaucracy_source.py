@@ -3,7 +3,6 @@ from datetime import date
 from typing import Any
 
 from bot.sources.base import BaseSource
-from bot.telegram.topics import BUREAUCRACY
 
 # TODO: Replace mock data with real sources such as:
 # - BOE (Boletín Oficial del Estado) RSS: https://www.boe.es/rss/
@@ -37,7 +36,7 @@ _REMINDERS = [
     },
     {
         "id": "ibi_tax",
-        "title": "IBI tax payment reminder",
+        "title": "IBI property tax reminder",
         "body": (
             "🏠 <b>Bureaucracy Reminder: IBI Property Tax</b>\n\n"
             "The voluntary IBI payment period typically runs Sept–Nov in Sagunto. "
@@ -55,8 +54,8 @@ class BureaucracySource(BaseSource):
         return "bureaucracy"
 
     @property
-    def target_topic(self) -> str:
-        return BUREAUCRACY
+    def default_topic(self) -> str:
+        return "bureaucracy"
 
     async def fetch_items(self) -> list[dict[str, Any]]:
         reminder = random.choice(_REMINDERS)
