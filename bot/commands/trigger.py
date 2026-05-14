@@ -2,10 +2,11 @@ import structlog
 from telegram import Update
 from telegram.ext import ContextTypes
 
-from bot.services.moderation import is_admin, mention_html
+from bot.config import settings
+from bot.services.moderation import is_admin
 from bot.services.scheduler import _run_source
-from bot.sources.bureaucracy_source import BureaucracySource
 from bot.sources.base import BaseSource
+from bot.sources.bureaucracy_source import BureaucracySource
 from bot.sources.events_source import EventsSource
 from bot.sources.language_source import EnglishWordSource, SpanishWordSource
 from bot.sources.weather_source import WeatherSource
@@ -25,7 +26,12 @@ _SOURCES: dict[str, type[BaseSource]] = {
 async def trigger_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if not update.message or not update.effective_user or not update.effective_chat:
         return
-    if not await is_admin(context.bot, update.effective_chat.id, update.effective_user.id):
+
+    # Check admin status in the configured group so this command works both
+    # inside the group and in a private chat with the bot.
+    check_chat_id = settings.telegram_group_id or update.effective_chat.id
+    if not await is_admin(context.bot, check_chat_id, update.effective_user.id):
+        await update.message.reply_text("⛔ This command is only available to group admins.")
         return
 
     if not context.args:
