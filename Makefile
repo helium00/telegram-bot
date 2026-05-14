@@ -1,6 +1,6 @@
 COMPOSE = docker compose
 BACKUP_DIR = backups
-VENV = .venv
+VENV = $(HOME)/.venvs/sagunto-hub-bot
 PYTHON = $(VENV)/bin/python3
 
 .PHONY: secrets install build up down logs db-shell backup test lint
