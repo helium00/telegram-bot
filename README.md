@@ -8,15 +8,17 @@ A production-ready Telegram bot for the **Sagunto Hub** community. It automatica
 
 1. [Architecture](#architecture)
 2. [How Telegram Topics Work](#how-telegram-topics-work)
-3. [Creating the Bot with BotFather](#creating-the-bot-with-botfather)
-4. [Creating a Supergroup with Topics](#creating-a-supergroup-with-topics)
-5. [Obtaining Chat ID and Thread IDs](#obtaining-chat-id-and-thread-ids)
-6. [Generating Secrets](#generating-secrets)
-7. [Running Locally](#running-locally)
-8. [Adding a New Source](#adding-a-new-source)
-9. [Migrating to an Ubuntu Server](#migrating-to-an-ubuntu-server)
-10. [Backup and Restore PostgreSQL](#backup-and-restore-postgresql)
-11. [Troubleshooting](#troubleshooting)
+3. [Step 1 — Create the Bot with BotFather](#step-1--create-the-bot-with-botfather)
+4. [Step 2 — Create a Supergroup with Topics](#step-2--create-a-supergroup-with-topics)
+5. [Step 3 — Clone and Configure](#step-3--clone-and-configure)
+6. [Step 4 — Start the Bot](#step-4--start-the-bot)
+7. [Step 5 — Discover Group ID and Topic IDs](#step-5--discover-group-id-and-topic-ids)
+8. [Step 6 — Complete Configuration and Restart](#step-6--complete-configuration-and-restart)
+9. [Running Tests](#running-tests)
+10. [Adding a New Source](#adding-a-new-source)
+11. [Migrating to an Ubuntu Server](#migrating-to-an-ubuntu-server)
+12. [Backup and Restore PostgreSQL](#backup-and-restore-postgresql)
+13. [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -74,90 +76,178 @@ APScheduler → Source.fetch_items() → duplicate_guard → TelegramClient.send
 
 A Telegram **supergroup** with **Topics** enabled acts like a forum: each topic is a thread with its own `message_thread_id`. The bot uses `message_thread_id` when calling `sendMessage` to route content to the correct thread.
 
-To send to the main chat (no topic), omit `message_thread_id` (or set it to `None`).
+If a topic ID is not configured (set to 0 or left empty), the bot sends to the main chat instead of crashing.
 
 ---
 
-## Creating the Bot with BotFather
+## Step 1 — Create the Bot with BotFather
 
 1. Open Telegram and start a chat with **@BotFather**.
-2. Send `/newbot` and follow the prompts (name + username).
-3. Copy the **bot token** — this is your `TELEGRAM_BOT_TOKEN`.
-4. Send `/setprivacy` → select your bot → **Disable** (so it can read messages in groups).
-5. Optionally send `/setcommands` to register slash commands.
+2. Send `/newbot` and follow the prompts (choose a name and a username ending in `bot`).
+3. BotFather will reply with your **bot token** — copy it immediately.
+4. Send `/setprivacy` → select your bot → choose **Disable** so it can read messages in groups.
+5. Optionally send `/setcommands` and paste:
+   ```
+   start - Welcome message
+   help - Show available commands
+   id - Show current chat ID
+   where - Show chat ID and topic thread ID
+   ```
 
-> **Keep your bot token private.** Anyone with the token can control your bot.
-
----
-
-## Creating a Supergroup with Topics
-
-1. Create a new Telegram group.
-2. Open **Group Info → Edit → Topics** and enable it (this converts the group to a supergroup).
-3. Create the topics: General, Spanish Learning, English Learning, Bureaucracy, Events, Activities, Announcements.
-4. Add your bot as an **administrator** with at least "Post Messages" permission.
+> **Keep your bot token private.** Anyone with the token can control your bot. Never commit it to git.
 
 ---
 
-## Obtaining Chat ID and Thread IDs
+## Step 2 — Create a Supergroup with Topics
 
-1. Add the bot to the supergroup.
-2. Send `/id` in the main chat → copy the **Chat ID** (negative number).
-3. Open each topic and send `/where` → copy the **Thread ID** for that topic.
-4. Fill in your `.env`:
-
-```
-TELEGRAM_GROUP_ID=-1001234567890
-TOPIC_GENERAL_ID=1
-TOPIC_SPANISH_ID=2
-TOPIC_ENGLISH_ID=3
-TOPIC_BUREAUCRACY_ID=4
-TOPIC_EVENTS_ID=5
-TOPIC_ACTIVITIES_ID=6
-TOPIC_ANNOUNCEMENTS_ID=7
-```
+1. Create a new Telegram group (any name).
+2. Open **Group Info → Edit → Topics** and enable it.
+   - This converts the group to a **supergroup** automatically.
+3. Create the following topics one by one:
+   - General
+   - Spanish Learning
+   - English Learning
+   - Bureaucracy
+   - Events
+   - Activities
+   - Announcements
+4. Add your bot to the group.
+5. Promote the bot to **administrator** and enable at least:
+   - ✅ Post Messages
+   - ✅ Manage Topics (optional but recommended)
 
 ---
 
-## Generating Secrets
+## Step 3 — Clone and Configure
+
+**Prerequisites:** Docker, Docker Compose, `make`, `python3-venv`, `git`.
 
 ```bash
+# Ubuntu — install prerequisites
+sudo apt update && sudo apt install -y docker.io docker-compose-plugin make git python3-venv
+
+# Clone the repo
+git clone https://github.com/helium00/telegram-bot.git sagunto-hub-bot
+cd sagunto-hub-bot
+
+# Generate .env with a random database password
 make secrets
 ```
 
-This copies `.env.example` to `.env` and fills in a random `POSTGRES_PASSWORD`. Then edit `.env` and add your Telegram credentials and topic IDs.
+Now open `.env` and fill in **only** the bot token — everything else can be discovered later:
+
+```env
+TELEGRAM_BOT_TOKEN=123456789:AAFxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+```
+
+Leave all `TOPIC_*_ID` and `TELEGRAM_GROUP_ID` fields as empty or 0 for now.
 
 ---
 
-## Running Locally
-
-**Prerequisites:** Docker, Docker Compose, `make`, Python 3, `python3-venv`.
+## Step 4 — Start the Bot
 
 ```bash
-# On Ubuntu — install venv support if missing
-sudo apt install -y python3-venv
-
-# 1. Create virtualenv and install Python dependencies (required for make test / make lint)
-make install
-
-# 2. Generate secrets
-make secrets
-
-# 3. Edit .env — add TELEGRAM_BOT_TOKEN, TELEGRAM_GROUP_ID, TOPIC_*_ID
-
-# 4. Build and start
 make build
 make up
-
-# 5. Tail logs
 make logs
+```
 
-# 6. Connect to DB (optional)
-make db-shell
+You should see output like:
 
-# 7. Run tests
+```
+bot-1  | migrations_applied
+bot-1  | database_connected
+bot-1  | scheduler_started
+bot-1  | polling_started
+```
+
+If you see errors, check the [Troubleshooting](#troubleshooting) section.
+
+---
+
+## Step 5 — Discover Group ID and Topic IDs
+
+The bot must be running (Step 4) and added to the group (Step 2) before doing this.
+
+**Get the Group ID:**
+
+Go to the main group chat (not inside any topic) and send:
+```
+/id
+```
+The bot replies with something like:
+```
+Chat ID: -1001234567890
+```
+Copy this number — it is your `TELEGRAM_GROUP_ID`.
+
+**Get each Topic ID:**
+
+Open each topic one by one and send:
+```
+/where
+```
+The bot replies with:
+```
+Chat ID: -1001234567890
+Thread ID: 5
+```
+The **Thread ID** is the `message_thread_id` for that topic.
+
+Repeat `/where` inside every topic and note each value:
+
+| Topic | Thread ID |
+|---|---|
+| General | e.g. 1 |
+| Spanish Learning | e.g. 3 |
+| English Learning | e.g. 5 |
+| Bureaucracy | e.g. 7 |
+| Events | e.g. 9 |
+| Activities | e.g. 11 |
+| Announcements | e.g. 13 |
+
+---
+
+## Step 6 — Complete Configuration and Restart
+
+Edit `.env` and fill in all the IDs you collected:
+
+```env
+TELEGRAM_BOT_TOKEN=123456789:AAFxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+TELEGRAM_GROUP_ID=-1001234567890
+
+TOPIC_GENERAL_ID=1
+TOPIC_SPANISH_ID=3
+TOPIC_ENGLISH_ID=5
+TOPIC_BUREAUCRACY_ID=7
+TOPIC_EVENTS_ID=9
+TOPIC_ACTIVITIES_ID=11
+TOPIC_ANNOUNCEMENTS_ID=13
+```
+
+Restart the bot to apply the new configuration:
+
+```bash
+make down
+make up
+make logs
+```
+
+The bot is now fully configured and will automatically post content to the correct topics according to the configured schedules.
+
+---
+
+## Running Tests
+
+```bash
+# First time only — create virtualenv and install dependencies
+make install
+
+# Run tests
 make test
 ```
+
+> **Note:** The virtualenv is created in `~/.venvs/sagunto-hub-bot/` (outside the project folder) to avoid symlink issues on VirtualBox shared filesystems.
 
 ---
 
@@ -167,7 +257,7 @@ make test
 
 ```python
 from bot.sources.base import BaseSource
-from bot.telegram.topics import EVENTS  # choose the right topic
+from bot.telegram.topics import EVENTS
 
 class MySource(BaseSource):
     @property
@@ -186,8 +276,8 @@ class MySource(BaseSource):
         return f"<b>{item['title']}</b>\n\n{item['body']}"
 ```
 
-2. Register a schedule in `bot/services/scheduler.py` — add an entry to `schedule_map`.
-3. Instantiate and add to the `sources` list in `bot/main.py`.
+2. Add a schedule entry in `bot/services/scheduler.py` → `schedule_map`.
+3. Add the source to the `sources` list in `bot/main.py`.
 4. Add the cron env var to `.env.example` and `.env`.
 
 ---
@@ -195,28 +285,34 @@ class MySource(BaseSource):
 ## Migrating to an Ubuntu Server
 
 ```bash
-# On the server — install system dependencies
+# Install prerequisites
 sudo apt update && sudo apt install -y docker.io docker-compose-plugin make git python3-venv
 
+# Add your user to the docker group (avoids sudo on every docker command)
+sudo usermod -aG docker $USER
+newgrp docker
+
 # Clone the repo
-git clone <your-repo-url> sagunto-hub-bot
+git clone https://github.com/helium00/telegram-bot.git sagunto-hub-bot
 cd sagunto-hub-bot
 
-# Install Python dependencies (needed for make test / make lint)
-make install
-
-# Copy your .env (do NOT commit it)
-scp local/.env ubuntu@server:/path/sagunto-hub-bot/.env
+# Copy your configured .env from your local machine (never commit it)
+# Run this from your LOCAL machine:
+# scp .env user@server:/path/to/sagunto-hub-bot/.env
 
 # Build and start
 make build
 make up
-
-# Enable auto-start on reboot (Docker daemon already starts automatically)
-# To ensure containers restart: docker-compose.yml already sets restart: unless-stopped
+make logs
 ```
 
-To run as a systemd service instead:
+To ensure the bot restarts automatically on server reboot (already configured via `restart: unless-stopped` in docker-compose.yml), make sure the Docker daemon starts on boot:
+
+```bash
+sudo systemctl enable docker
+```
+
+Optionally, run as a systemd service:
 
 ```ini
 # /etc/systemd/system/sagunto-hub-bot.service
@@ -263,9 +359,13 @@ gunzip -c backups/sagunto_hub_bot_20240101_080000.sql.gz \
 
 | Problem | Solution |
 |---|---|
-| Bot doesn't post to topics | Check `TELEGRAM_GROUP_ID` is negative and `TOPIC_*_ID` values are correct — use `/where` inside each topic |
-| `permission denied` when posting | Ensure the bot is a group admin with "Post Messages" enabled |
-| Database connection refused | Check `DATABASE_URL` matches `POSTGRES_USER`/`POSTGRES_PASSWORD`/`POSTGRES_DB` in `.env` |
-| Duplicate posts | `posted_items` table may be empty — DB state is source of truth; check `make db-shell` |
-| Bot token invalid | Regenerate with BotFather `/revoke` and update `TELEGRAM_BOT_TOKEN` |
-| Container won't start | Check `make logs` for the error; ensure `.env` exists and is populated |
+| `No module named pip` | Run `sudo apt install -y python3-venv` then `make install` |
+| `Protocol error: lib64` | Makefile already handles this — venv is created in `~/.venvs/` outside shared folders |
+| `externally-managed-environment` | Use `make install` — it creates a virtualenv automatically |
+| Bot container keeps restarting | Run `make logs` and check the error; most likely `.env` is misconfigured |
+| `password authentication failed` | `DATABASE_URL` password must match `POSTGRES_PASSWORD` in `.env`; if volume exists with old password run `make down && docker volume rm telegram-bot_postgres_data && make up` |
+| `Input should be a valid integer` | Leave `TOPIC_*_ID` fields completely empty or set to `0`, not to a word or placeholder |
+| Bot doesn't respond to commands | Check bot is admin in the group with "Post Messages" enabled |
+| Bot doesn't post to topics | Fill in `TOPIC_*_ID` via `/where` command, update `.env`, restart with `make down && make up` |
+| `/where` returns `Thread ID: —` | You are in the main chat, not inside a topic — open a specific topic first |
+| Bot token invalid | Regenerate with BotFather `/revoke` and update `TELEGRAM_BOT_TOKEN` in `.env` |
