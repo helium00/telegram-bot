@@ -67,6 +67,11 @@ def main() -> None:
     application.add_handler(CommandHandler("id", id_handler))
     application.add_handler(CommandHandler("where", where_handler))
 
+    # Migrations close the event loop internally (asyncio.run in env.py).
+    # PTB needs a running loop — create a fresh one before run_polling.
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+
     logger.info("polling_started")
     application.run_polling(drop_pending_updates=True)
 
