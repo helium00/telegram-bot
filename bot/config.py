@@ -1,3 +1,4 @@
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -30,6 +31,23 @@ class Settings(BaseSettings):
     schedule_english_word: str = "0 9 * * *"
     schedule_events: str = "0 */6 * * *"
     schedule_bureaucracy: str = "0 10 * * 1,4"
+
+    @field_validator(
+        "telegram_group_id",
+        "topic_general_id",
+        "topic_spanish_id",
+        "topic_english_id",
+        "topic_bureaucracy_id",
+        "topic_events_id",
+        "topic_activities_id",
+        "topic_announcements_id",
+        mode="before",
+    )
+    @classmethod
+    def empty_str_to_zero(cls, v: object) -> object:
+        if v == "":
+            return 0
+        return v
 
     @property
     def is_production(self) -> bool:
