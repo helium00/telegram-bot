@@ -1,10 +1,13 @@
 COMPOSE = docker compose
 BACKUP_DIR = backups
 
-.PHONY: secrets build up down logs db-shell backup test lint
+.PHONY: secrets install build up down logs db-shell backup test lint
 
 secrets:
 	@bash scripts/generate_secrets.sh
+
+install:
+	pip3 install -r requirements.txt
 
 build:
 	$(COMPOSE) build
