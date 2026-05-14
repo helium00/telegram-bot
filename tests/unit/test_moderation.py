@@ -73,3 +73,12 @@ async def test_is_admin_false_for_member():
     member.status = "member"
     bot.get_chat_member.return_value = member
     assert await is_admin(bot, -1001234567890, 42) is False
+
+
+@pytest.mark.asyncio
+async def test_is_admin_false_on_telegram_error():
+    from telegram.error import TelegramError
+
+    bot = AsyncMock()
+    bot.get_chat_member.side_effect = TelegramError("forbidden")
+    assert await is_admin(bot, -1001234567890, 42) is False
