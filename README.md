@@ -237,6 +237,59 @@ The bot is now fully configured and will automatically post content to the corre
 
 ---
 
+## Managing Topics
+
+Topics are fully driven by `.env`. No code changes are ever needed to add or remove one.
+
+### Naming convention
+
+The topic name is the middle segment of `TOPIC_*_ID`, **lowercased**:
+
+| Env var | Topic name used by sources |
+|---|---|
+| `TOPIC_WEATHER_ID` | `weather` |
+| `TOPIC_SPANISH_ID` | `spanish` |
+| `TOPIC_SPANISH_LEARNING_ID` | `spanish_learning` |
+
+### Adding a topic
+
+1. Create the topic in your Telegram supergroup.
+2. Send `/where` inside the new topic — copy the **Thread ID**.
+3. Add one line to `.env`:
+   ```
+   TOPIC_WEATHER_ID=42
+   ```
+4. Restart the bot:
+   ```bash
+   make down && make up
+   ```
+
+No code changes needed.
+
+### Removing a topic
+
+Delete or comment out the line in `.env`:
+
+```
+# TOPIC_ANNOUNCEMENTS_ID=13
+```
+
+Restart the bot. The topic is ignored — existing posted_items records are kept in the DB.
+
+### Built-in sources and their default topics
+
+| Source | Default topic name | Env var to configure |
+|---|---|---|
+| WeatherSource | `weather` | `TOPIC_WEATHER_ID` |
+| EventsSource | `events` | `TOPIC_EVENTS_ID` |
+| BureaucracySource | `bureaucracy` | `TOPIC_BUREAUCRACY_ID` |
+| SpanishWordSource | `spanish` | `TOPIC_SPANISH_ID` |
+| EnglishWordSource | `english` | `TOPIC_ENGLISH_ID` |
+
+If a source's `default_topic` has no matching `TOPIC_*_ID` in `.env`, the bot sends the message to the **main group chat** instead of a topic (silent fallback, no crash).
+
+---
+
 ## Running Tests
 
 ```bash
@@ -257,7 +310,6 @@ make test
 
 ```python
 from bot.sources.base import BaseSource
-from bot.telegram.topics import EVENTS
 
 class MySource(BaseSource):
     @property
@@ -265,8 +317,10 @@ class MySource(BaseSource):
         return "my_source"
 
     @property
-    def target_topic(self) -> str:
-        return EVENTS
+    def default_topic(self) -> str:
+        # Must match the TOPIC_*_ID key in .env (lowercased middle segment).
+        # e.g. default_topic = "weather" → reads TOPIC_WEATHER_ID
+        return "my_topic"
 
     async def fetch_items(self):
         # TODO: call real API here
@@ -276,9 +330,10 @@ class MySource(BaseSource):
         return f"<b>{item['title']}</b>\n\n{item['body']}"
 ```
 
-2. Add a schedule entry in `bot/services/scheduler.py` → `schedule_map`.
-3. Add the source to the `sources` list in `bot/main.py`.
-4. Add the cron env var to `.env.example` and `.env`.
+2. Add `TOPIC_MY_TOPIC_ID=<thread_id>` to `.env`.
+3. Register a schedule in `bot/services/scheduler.py` → `schedule_map`.
+4. Instantiate and add to the `sources` list in `bot/main.py`.
+5. Add the cron env var to `.env.example` and `.env`.
 
 ---
 
