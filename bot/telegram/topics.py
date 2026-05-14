@@ -1,31 +1,28 @@
-from bot.config import settings
+import os
+import re
 
-# Logical topic names used throughout the codebase
-GENERAL = "general"
-SPANISH = "spanish"
-ENGLISH = "english"
-BUREAUCRACY = "bureaucracy"
-EVENTS = "events"
-ACTIVITIES = "activities"
-ANNOUNCEMENTS = "announcements"
+_PATTERN = re.compile(r'^TOPIC_(.+)_ID$')
 
-ALL_TOPICS = [GENERAL, SPANISH, ENGLISH, BUREAUCRACY, EVENTS, ACTIVITIES, ANNOUNCEMENTS]
+
+def _load_topic_map() -> dict[str, int]:
+    result: dict[str, int] = {}
+    for key, value in os.environ.items():
+        m = _PATTERN.match(key)
+        if m and value.strip():
+            try:
+                thread_id = int(value.strip())
+                if thread_id != 0:
+                    result[m.group(1).lower()] = thread_id
+            except ValueError:
+                pass
+    return result
 
 
 def get_thread_id(topic_name: str) -> int | None:
-    """Return the Telegram message_thread_id for a logical topic name.
+    """Return the Telegram message_thread_id for a topic name, or None if not configured."""
+    return _load_topic_map().get(topic_name)
 
-    Returns None when the topic ID is not configured (value == 0),
-    which causes the message to be sent to the main chat instead.
-    """
-    mapping: dict[str, int] = {
-        GENERAL: settings.topic_general_id,
-        SPANISH: settings.topic_spanish_id,
-        ENGLISH: settings.topic_english_id,
-        BUREAUCRACY: settings.topic_bureaucracy_id,
-        EVENTS: settings.topic_events_id,
-        ACTIVITIES: settings.topic_activities_id,
-        ANNOUNCEMENTS: settings.topic_announcements_id,
-    }
-    thread_id = mapping.get(topic_name, 0)
-    return thread_id if thread_id != 0 else None
+
+def all_topics() -> list[str]:
+    """Return all configured topic names."""
+    return list(_load_topic_map().keys())
