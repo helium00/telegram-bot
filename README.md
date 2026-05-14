@@ -290,6 +290,52 @@ If a source's `default_topic` has no matching `TOPIC_*_ID` in `.env`, the bot se
 
 ---
 
+## Moderation
+
+The bot can act as a group moderator. All moderation commands are **admin-only** — they silently do nothing when used by non-admins.
+
+### Step 1 — Grant admin permissions in Telegram
+
+1. Open **Group Info → Administrators → Add Admin** → select the bot
+2. Enable:
+   - ✅ Ban Users — needed for `/ban`, `/kick`, `/warn` auto-ban
+   - ✅ Restrict Members — needed for `/mute` and `/unmute`
+   - ✅ Delete Messages — needed for `/del`
+3. Save
+
+### Commands reference
+
+All commands require you to **reply to a message** sent by the target user.
+
+| Command | Usage | Effect |
+|---|---|---|
+| `/ban [reason]` | Reply to message | Permanently bans the user |
+| `/kick [reason]` | Reply to message | Removes the user (can rejoin) |
+| `/mute [duration] [reason]` | Reply to message | Mutes. Duration: `30m`, `2h`, `1d` (optional) |
+| `/unmute` | Reply to message | Restores full send permissions |
+| `/warn [reason]` | Reply to message | Warns the user; auto-bans at `MAX_WARNINGS` (default 3) |
+| `/del` | Reply to message | Deletes the replied-to message |
+
+### Welcome message
+
+When a new member joins the group, the bot automatically sends a welcome message to the **General** topic (requires `TOPIC_GENERAL_ID` to be set in `.env`).
+
+### Configuring the warning threshold
+
+Set `MAX_WARNINGS` in `.env`:
+
+```env
+MAX_WARNINGS=3
+```
+
+Restart the bot to apply:
+
+```bash
+make down && make up
+```
+
+---
+
 ## Running Tests
 
 ```bash

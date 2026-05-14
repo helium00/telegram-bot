@@ -9,6 +9,14 @@ from bot.commands.help import help_handler
 from bot.commands.id import id_handler
 from bot.commands.start import start_handler
 from bot.commands.where import where_handler
+from telegram.ext import MessageHandler, filters
+
+from bot.commands.ban import ban_handler
+from bot.commands.kick import kick_handler
+from bot.commands.mute import mute_handler, unmute_handler
+from bot.commands.warn import warn_handler
+from bot.commands.delete_msg import delete_handler
+from bot.handlers.welcome import welcome_handler
 from bot.config import settings
 from bot.database.session import engine
 from bot.logging_config import configure_logging
@@ -66,6 +74,15 @@ def main() -> None:
     application.add_handler(CommandHandler("help", help_handler))
     application.add_handler(CommandHandler("id", id_handler))
     application.add_handler(CommandHandler("where", where_handler))
+    application.add_handler(CommandHandler("ban", ban_handler))
+    application.add_handler(CommandHandler("kick", kick_handler))
+    application.add_handler(CommandHandler("mute", mute_handler))
+    application.add_handler(CommandHandler("unmute", unmute_handler))
+    application.add_handler(CommandHandler("warn", warn_handler))
+    application.add_handler(CommandHandler("del", delete_handler))
+    application.add_handler(
+        MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, welcome_handler)
+    )
 
     # Migrations close the event loop internally (asyncio.run in env.py).
     # PTB needs a running loop — create a fresh one before run_polling.
