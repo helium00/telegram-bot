@@ -59,3 +59,14 @@ class Warning(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
+
+
+class CustomBadWord(Base):
+    __tablename__ = "custom_badwords"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    word: Mapped[str] = mapped_column(String(128), nullable=False, unique=True, index=True)
+    added_by: Mapped[Optional[int]] = mapped_column(BigInteger, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
