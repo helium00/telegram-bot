@@ -20,3 +20,11 @@ def reset_topics_cache():
     _topics_mod._cache = None
     yield
     _topics_mod._cache = None
+
+
+@pytest.fixture(autouse=True)
+def reset_profanity_cache():
+    import bot.services.profanity_filter as _pf_mod
+    _pf_mod.ProfanityFilter._cache = None
+    yield
+    _pf_mod.ProfanityFilter._cache = None
