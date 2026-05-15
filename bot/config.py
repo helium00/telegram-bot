@@ -16,6 +16,7 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
     app_env: str = "local"
     max_warnings: int = 3
+    profanity_enabled: bool = True
 
     # Schedules (cron expressions)
     schedule_weather: str = "0 8 * * *"

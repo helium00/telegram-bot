@@ -17,6 +17,8 @@ from bot.commands.mute import mute_handler, unmute_handler
 from bot.commands.warn import warn_handler
 from bot.commands.delete_msg import delete_handler
 from bot.commands.trigger import trigger_handler
+from bot.handlers.profanity import profanity_handler
+from bot.commands.badwords import addword_handler, removeword_handler, listwords_handler
 from bot.handlers.welcome import welcome_handler
 from bot.config import settings
 from bot.database.session import engine
@@ -82,6 +84,12 @@ def main() -> None:
     application.add_handler(CommandHandler("warn", warn_handler))
     application.add_handler(CommandHandler("del", delete_handler))
     application.add_handler(CommandHandler("trigger", trigger_handler))
+    application.add_handler(CommandHandler("addword", addword_handler))
+    application.add_handler(CommandHandler("removeword", removeword_handler))
+    application.add_handler(CommandHandler("listwords", listwords_handler))
+    application.add_handler(
+        MessageHandler(filters.TEXT & ~filters.COMMAND, profanity_handler)
+    )
     application.add_handler(
         MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, welcome_handler)
     )

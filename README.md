@@ -321,6 +321,9 @@ All moderation commands must be used by **replying to a message** sent by the ta
 | `/warn` | Reply + optional reason | Issues a warning; auto-bans when threshold is reached |
 | `/del` | Reply to the message to delete | Deletes that message and the `/del` command itself |
 | `/trigger <source>` | Anywhere in the group | Manually runs a content source immediately |
+| `/addword <word>` | (no reply needed) | Adds a word to the profanity filter |
+| `/removeword <word>` | (no reply needed) | Removes a word from the profanity filter |
+| `/listwords` | (no reply needed) | Lists all words in the profanity filter |
 
 **Duration format for `/mute`:**
 
@@ -511,6 +514,30 @@ make down && make up
 ```
 
 Warning records are stored in the `warnings` PostgreSQL table indefinitely. Banning a user does not reset their warning count.
+
+### Profanity filter
+
+The bot automatically deletes messages containing words from the filter list and warns the author publicly. Admins are exempt.
+
+The filter is seeded with ~45 common words in Spanish, Italian, and English. Manage it at runtime with admin commands:
+
+| Command | Effect |
+|---|---|
+| `/addword <word>` | Adds a word to the filter (stored in DB) |
+| `/removeword <word>` | Removes a word from the filter |
+| `/listwords` | Shows all words currently in the filter |
+
+Disable the filter without restarting:
+
+```env
+PROFANITY_ENABLED=false
+```
+
+Restart to apply config changes:
+
+```bash
+make down && make up
+```
 
 ---
 
