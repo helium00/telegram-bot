@@ -3,7 +3,7 @@ from typing import Optional
 
 import structlog
 from sqlalchemy import select
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
 from bot.database.models import CustomBadWord
 from bot.database.session import AsyncSessionLocal
@@ -39,17 +39,20 @@ class ProfanityFilter:
             return False
 
     async def remove_word(self, word: str) -> bool:
-        async with AsyncSessionLocal() as session:
-            result = await session.execute(
-                select(CustomBadWord).where(CustomBadWord.word == word.lower())
-            )
-            entry = result.scalar_one_or_none()
-            if entry is None:
-                return False
-            await session.delete(entry)
-            await session.commit()
-        ProfanityFilter._cache = None
-        return True
+        try:
+            async with AsyncSessionLocal() as session:
+                result = await session.execute(
+                    select(CustomBadWord).where(CustomBadWord.word == word.lower())
+                )
+                entry = result.scalar_one_or_none()
+                if entry is None:
+                    return False
+                await session.delete(entry)
+                await session.commit()
+            ProfanityFilter._cache = None
+            return True
+        except SQLAlchemyError:
+            return False
 
     async def list_words(self) -> list[str]:
         async with AsyncSessionLocal() as session:
